@@ -1,0 +1,37 @@
+<div class="container">
+  <% if @error %>
+    <p class="error"><%= @error %></p>
+  <% end %>
+  <div id="grid-wrap">
+    <p>You:&nbsp;<%= @game.player_marker %></p>
+  <table id="grid">
+    <% grid_layout.each do |row| %>
+      <tr><% row.each do |location| %>
+        <td class="cell-<%= location %>"><% if @grid[location] %>
+            <span><%= @grid[location] %></span>
+          <% else %>
+            <form action="/game/play/<%= @game.id %>" method="post">
+              <input type="hidden" name="location" value="<%= location %>">
+              <% if @game.finished? %>
+                &nbsp;
+                <% else %>
+                <input type="submit" value="Play this location">
+              <% end %>
+            </form>
+          <% end %>
+        </td>
+      <% end %>
+      </tr>
+    <% end %>
+ </table>
+ <% if @game.finished? %>
+ <p>Game Over! <% if ["Computer", "Player"].include?(@game.winner) %>
+  <%= @game.winner %> wins!
+  <% else %>
+    Draw!
+  <% end %>
+ </p>
+<% end %>
+
+ </div>
+</div>

@@ -17,7 +17,7 @@ require "sinatra/reloader" if development?
 
 require 'erb'
 
-require 'bcrypt'
+require 'debugger'
 
 APP_ROOT = Pathname.new(File.expand_path('../../', __FILE__))
 

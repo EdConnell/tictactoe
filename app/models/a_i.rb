@@ -42,44 +42,56 @@ class AI
     set_marker
   end
 
-  def find_next_move
+  def find_next_move!
     if first_move?
       if me_first?
         make_first_move!
       else
-        if player_has_corner
+        if player_has_corner?
           take_center!
-        elsif player_has_an_edge
-          make_first_move
+        elsif player_has_an_edge?
+          make_first_move!
         else # Player has center space
-          make_move!(CORNERS.sample)
+          take_open_corner!
         end
       end
     elsif second_move?
-      if i_have_a_corner?
-        if player_has_center?
-          take_opposite_corner!
-        elsif player_has_an_edge?
-          if edge_is_in_my_row?
-            take_corner_in_coloumn!
-          else
-            take_corner_in_row!
+      if me_first?
+        if i_have_a_corner?
+          if player_has_center?
+            take_opposite_corner_from_me!
+          elsif player_has_an_edge?
+            if edge_is_in_my_row?
+              take_corner_in_coloumn!
+            else
+              take_corner_in_row!
+            end
+          else # Player took a corner
+            take_center!
           end
-        else # Player took a corner
-          take_center!
+        else # I have the center
+          if player_has_corner?
+            take_opposite_corner!
+          else # Player took an edge
+            take_open_corner!
+          end
         end
-      else # I have the center
-        if player_has_corner?
-          take_opposite_corner!
-        else # Player took an edge
-          take_random_corner!
+      else # I'm second.  Player has had two moves
+        if player_can_win?
+          block_player!
+        elsif player_has_two_corners?
+          take_edge_space!
+        else
+          take_open_corner!
         end
       end
     else #Third turn and beyond
       if i_can_win?
         take_winning_spot!
-      else # Blocking player
+      elsif player_can_win?
         block_player!
+      else #No strategic places.  Most likely a tie.
+        take_open_location!
       end
     end
   end
@@ -89,7 +101,7 @@ class AI
   end
 
   def find_location_to_block_player
-    WIN.select {|triple| check_almost_winning(triple, player_moves, my_moves)}.first
+    p WIN.select {|triple| check_almost_winning(triple, player_moves, my_moves)}.first
   end
 
   def set_marker
@@ -101,6 +113,7 @@ class AI
   end
 
   def make_move!(space)
+    space = space[0] if space.is_a? Array
     my_move = game.moves.build(location: space, marker: marker)
     unless my_move.save
       raise "Something went wrong saving my move for game: #{@game.id} at the location: #{space}"
@@ -116,7 +129,7 @@ class AI
   end
 
   def me_first?
-    game.first_player == "Computer"
+    game.first_player == "computer"
   end
 
   def player_has_center?
@@ -125,6 +138,18 @@ class AI
 
   def player_has_an_edge?
     player_moves.any? {|move| EDGES.include?(move)}
+  end
+
+  def player_has_corner?
+    player_moves.any? {|move| CORNERS.include?(move)}
+  end
+
+  def player_has_two_corners?
+    (CORNERS - player_moves).count == 2
+  end
+
+  def player_has_corner_and_center?
+    (player_has_corner?  && player_has_center?)
   end
 
   def edge_is_in_my_row?
@@ -140,7 +165,11 @@ class AI
   end
 
   def i_can_win?
-    find_winning_triple.count > 0
+    find_winning_triple != nil
+  end
+
+  def player_can_win?
+    WIN.any? {|triple| check_almost_winning(triple, player_moves, my_moves)}
   end
 
   def check_almost_winning(triple, target_moves, opponents_moves)
@@ -157,6 +186,10 @@ class AI
 
   def player_moves
     game.moves.where('marker != ?', marker).pluck(:location)
+  end
+
+  def illegal_moves
+    game.moves.pluck(:location)
   end
 
   def player_first_move
@@ -179,8 +212,12 @@ class AI
     make_move!(CENTER)
   end
 
-  def take_opposite_corner!(corner)
+  def take_opposite_corner!
     make_move!(OPPOSITE_CORNERS_DIAG[player_first_move])
+  end
+
+  def take_opposite_corner_from_me!
+    make_move!(OPPOSITE_CORNERS_DIAG[my_first_move])
   end
 
   def take_corner_in_coloumn!
@@ -191,8 +228,12 @@ class AI
     make_move!(OPPOSITE_CORNERS_ROW[my_first_move])
   end
 
-  def take_random_corner!
-    make_move!(CORNERS.sample)
+  def take_open_corner!
+    make_move!((CORNERS - illegal_moves).sample)
+  end
+
+  def take_edge_space!
+    make_move!((EDGES - illegal_moves).sample)
   end
 
   def take_winning_spot!
@@ -201,5 +242,9 @@ class AI
 
   def block_player!
     make_move!(find_location_to_block_player.select {|location| !player_moves.include?(location)})
+  end
+
+  def take_open_location!
+    make_move!((0..8).to_a - illegal_moves)
   end
 end

@@ -2,4 +2,76 @@
   margin: 20px auto;
   width: 700px;
   padding: 0px 20px 20px 20px;
-  border: 1px solid black;
+  /*border: 1px solid black;*/
+  text-align: center;
+}
+
+#grid-wrap {
+  margin: 20% 20%;
+  text-align: center;
+}
+
+nav {
+  width: 100%;
+  background-color: #1f7702;
+  height: auto;
+}
+
+.logo {
+  font-size: 30px;
+  display: inline-block;
+  margin: 20px 0 30px 15px;
+}
+
+.logo a {
+  text-decoration: none;
+  color: white;
+}
+
+span.new-game {
+  float: right;
+  padding: 35px 30px;
+}
+
+.new-game a {
+  text-decoration: none;
+  color: white;
+}
+
+.error {
+  color: red;
+}
+
+td.cell-0 {
+  border-bottom: 2px solid black;
+}
+
+td.cell-1 {
+  border: 2px solid black;
+  border-top: none;
+}
+
+td.cell-2 {
+  border-bottom: 2px solid black;
+}
+
+td.cell-3 {
+  border-right: 2px solid black;
+}
+
+td.cell-5 {
+  border-left: 2px solid black;
+}
+
+td.cell-6 {
+  border-top: 2px solid black;
+}
+
+td.cell-7 {
+  border: 2px solid black;
+  border-bottom: none;
+}
+
+td.cell-8 {
+  border-top: 2px solid black;
+}
